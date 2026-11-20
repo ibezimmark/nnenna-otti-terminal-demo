@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nnenna Otti Bus Terminal | Abia Transit Central</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<script>
+tailwind.config = {
+  theme: { extend: {
+    fontFamily: { sans: ['Public Sans', 'system-ui', 'sans-serif'] },
+    colors: {
+      navy: { DEFAULT: '#0c2b3f', 700: '#13405c' },
+      abia: { DEFAULT: '#0a7a4d', dark: '#075c3a', light: '#e4f3ec' },
+      gold: { DEFAULT: '#b7852a', dark: '#9c7020', light: '#faf1dc' },
+      ink: '#14232d', mist: '#f2f5f7', line: '#d9e2e7'
+    },
+    keyframes: {
+      slide: { to: { transform: 'translateX(-100%)' } },
+      pop: { from: { opacity: 0, transform: 'translateY(12px) scale(.97)' }, to: { opacity: 1, transform: 'none' } },
+      scan: { to: { top: 'calc(100% - 2px)' } },
+      rise: { from: { opacity: 0, transform: 'translateY(8px)' }, to: { opacity: 1, transform: 'none' } }
+    },
+    animation: { slide: 'slide 45s linear infinite', pop: 'pop .25s ease-out', scan: 'scan 2s ease-in-out infinite alternate', rise: 'rise .35s ease-out' }
+  } }
+}
+</script>
+<style type="text/tailwindcss">
+@layer components {
+  .card { @apply bg-white border border-line rounded-xl shadow-sm p-5 transition-shadow duration-200 hover:shadow-md; }
+  .card-h { @apply flex justify-between items-start gap-3 border-b border-line -mx-5 -mt-5 mb-4 px-5 py-4; }
+  .card-h h3 { @apply text-[15px] font-bold text-navy flex items-center gap-2; }
+  .card-h h3 i { @apply text-abia; }
+  .btn { @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-[13px] font-bold transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 active:scale-95 disabled:opacity-100 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed disabled:shadow-none disabled:translate-y-0; }
+  .btn-p { @apply bg-abia text-white hover:bg-abia-dark; }
+  .btn-g { @apply bg-gold text-white hover:bg-gold-dark; }
+  .btn-o { @apply bg-white text-navy border border-slate-300 hover:border-abia hover:text-abia-dark hover:bg-abia-light; }
+  .btn-sm { @apply px-3 py-1.5 text-xs; }
+  .input { @apply w-full bg-white border border-slate-300 rounded-lg px-3 py-2.5 text-[13px] text-ink transition focus:outline-none focus:border-abia focus:ring-4 focus:ring-abia/15 hover:border-slate-400; }
+  .lbl { @apply block text-xs font-semibold text-slate-500 mb-1.5; }
+  .badge { @apply inline-block px-2.5 py-0.5 rounded-full text-[11px] font-bold border whitespace-nowrap; }
+  .b-green { @apply bg-abia-light text-abia-dark border-emerald-200; }
+  .b-gold { @apply bg-gold-light text-amber-800 border-amber-200; }
+  .b-blue { @apply bg-blue-50 text-blue-700 border-blue-200; }
+  .b-grey { @apply bg-slate-100 text-slate-500 border-slate-200; }
+  .tab { @apply px-4 py-2 rounded-lg text-[13px] font-semibold text-slate-500 whitespace-nowrap flex items-center gap-2 transition-all duration-200 hover:text-navy hover:bg-slate-100; }
+  .tab.active { @apply bg-abia text-white shadow-md hover:bg-abia-dark hover:text-white; }
+  .seat { @apply py-2.5 rounded-lg border border-slate-300 bg-white font-bold text-[13px] flex flex-col items-center transition-all duration-150 hover:scale-105 hover:border-abia hover:bg-abia-light hover:shadow-md; }
+  .seat span { @apply text-[9px] font-semibold text-slate-400 tracking-wide; }
+  .seat.sel { @apply bg-abia border-abia-dark text-white shadow-lg scale-105 hover:bg-abia-dark; }
+  .seat.sel span { @apply text-emerald-100; }
+  .seat:disabled { @apply bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed hover:scale-100 hover:shadow-none hover:bg-slate-100 hover:border-slate-200; }
+  .modal { @apply fixed inset-0 z-50 bg-navy/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto; }
+  .mbox { @apply bg-white rounded-2xl w-full max-w-md p-6 grid gap-4 relative shadow-2xl m-auto animate-pop; }
+  .xbtn { @apply absolute top-3 right-3 w-8 h-8 rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-ink hover:rotate-90; }
+  th { @apply text-left bg-slate-100 text-slate-500 text-xs font-bold px-3 py-2.5 whitespace-nowrap; }
+  td { @apply px-3 py-3 border-b border-line align-middle; }
+  tbody tr { @apply transition-colors hover:bg-abia-light/60; }
+  tr:last-child td { @apply border-b-0; }
+}
+</style>
+</head>
+<body class="font-sans bg-mist text-ink text-sm min-h-screen flex flex-col antialiased">
+
+<div class="bg-navy text-slate-300 text-xs py-2">
+  <div class="max-w-7xl mx-auto px-4 lg:px-6 flex flex-wrap gap-3 items-center justify-between">
+
+    <button onclick="togglePitchGuideModal()" class="font-semibold text-white underline underline-offset-4 decoration-gold hover:text-amber-200 transition"><i class="fa-solid fa-circle-info mr-1"></i>Commissioner's quick guide</button>
+  </div>
+</div>
+
+<header class="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-line">
+  <div class="max-w-7xl mx-auto px-4 lg:px-6 py-3 flex flex-wrap items-center gap-x-6 gap-y-3">
+    <div class="flex items-center gap-3 mr-auto group">
+      <div class="w-11 h-11 rounded-xl bg-abia text-white grid place-items-center text-xl border-b-4 border-gold transition-transform duration-300 group-hover:-rotate-6 group-hover:scale-110"><i class="fa-solid fa-bus-simple"></i></div>
+      <div><h1 class="text-base font-extrabold text-navy leading-tight">Abia Transit Central</h1>
+        <p class="text-xs text-slate-500"><i class="fa-solid fa-location-dot text-abia"></i> Nnenna Otti Terminal, Umuahia</p></div>
+    </div>
+    <nav class="flex gap-1 overflow-x-auto max-w-full">
+      <button class="tab active" id="tab-dashboard" onclick="switchView('dashboard')"><i class="fa-solid fa-chart-pie"></i> Executive overview</button>
+      <button class="tab" id="tab-booking" onclick="switchView('booking')"><i class="fa-solid fa-ticket"></i> Booking &amp; seats</button>
+      <button class="tab" id="tab-scanner" onclick="switchView('scanner')"><i class="fa-solid fa-qrcode"></i> Gate scanner</button>
+      <button class="tab" id="tab-waybill" onclick="switchView('waybill')"><i class="fa-solid fa-box"></i> Parcel cargo</button>
+    </nav>
+    <div class="flex items-center gap-3 border border-line rounded-xl py-1.5 pl-3 pr-1.5 bg-white hover:border-abia hover:shadow-md transition">
+      <div class="hidden sm:block leading-tight">
+        <div class="text-[13px] font-bold">Mr Mark Zu <span class="badge b-green ml-1">ABSSIN verified</span></div>
+        <div class="text-[11px] text-slate-500 tabular-nums">AB-UMU-2026-8942</div>
+      </div>
+      <span class="font-extrabold text-abia-dark tabular-nums" id="navWalletBalance">₦25,000</span>
+      <button class="btn btn-p btn-sm" onclick="openWalletModal()"><i class="fa-solid fa-wallet"></i> Top up</button>
+    </div>
+  </div>
+</header>
+
+<div class="bg-white border-b border-line text-xs text-slate-500">
+  <div class="max-w-7xl mx-auto px-4 lg:px-6 py-2 flex items-center gap-4">
+    <span class="flex items-center gap-1.5 font-bold text-abia-dark shrink-0"><span class="w-2 h-2 rounded-full bg-abia animate-pulse"></span> Live terminal feed</span>
+    <div class="overflow-hidden flex-1 whitespace-nowrap group"><span class="inline-block pl-[100%] animate-slide group-hover:[animation-play-state:paused] motion-reduce:animate-none motion-reduce:pl-0">Bay 3: Abia Line Executive (Hiace #AL-409) loading for Lagos (Ojota), 3 seats left &nbsp;|&nbsp; Bay 1: ABC Transport luxury coach departs for Abuja (Utako) in 15 minutes &nbsp;|&nbsp; ABSSIN wallet transactions today: 1,482 &nbsp;|&nbsp; Ariaria Express Logistics bay open for waybill drop-off</span></div>
+  </div>
+</div>
+
+<main class="flex-1 w-full max-w-7xl mx-auto px-4 lg:px-6 py-6 pb-12">
+
+<!-- DASHBOARD -->
+<section id="view-dashboard" class="view grid gap-5 animate-rise">
+  <div class="relative overflow-hidden rounded-xl bg-gradient-to-br from-navy via-navy to-navy-700 text-white p-7 border-l-8 border-gold flex flex-wrap items-center justify-between gap-5 shadow-lg">
+    <div class="absolute -right-10 -top-16 w-64 h-64 rounded-full bg-abia/25 blur-3xl pointer-events-none"></div>
+    <div class="relative">
+      <small class="text-amber-300 font-semibold text-xs">Abia State Government Transport Modernization Initiative</small>
+      <h2 class="text-2xl md:text-3xl font-extrabold mt-1 mb-1.5 leading-tight">Nnenna Otti Terminal: real-time operations</h2>
+      <p class="text-slate-300 max-w-2xl">Ending terminal congestion, removing physical queues and automating revenue settlement between operators and the state through ABSSIN.</p>
+    </div>
+    <button class="btn btn-g relative" onclick="switchView('booking')"><i class="fa-solid fa-ticket"></i> Try passenger booking</button>
+  </div>
+
+  <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-4" id="metrics"></div>
+
+  <div class="grid gap-5 lg:grid-cols-3">
+    <div class="card lg:col-span-2">
+      <div class="card-h"><div><h3><i class="fa-solid fa-list-check"></i> Live departure board</h3><p class="text-xs text-slate-500 mt-0.5">Real-time status of departure bays</p></div><span class="badge b-green">Auto-updating</span></div>
+      <div class="overflow-x-auto"><table class="w-full text-[13px]">
+        <thead><tr><th>Operator</th><th>Destination</th><th>Departs</th><th>Bay</th><th>Seats</th><th class="text-right">Status</th></tr></thead>
+        <tbody id="dashboardDepartureTable"></tbody>
+      </table></div>
+    </div>
+    <div class="card grid gap-3.5 content-start">
+      <div class="card-h !mb-0"><div><h3><i class="fa-solid fa-diagram-project"></i> ABSSIN settlement</h3><p class="text-xs text-slate-500 mt-0.5">Automatic split between state and operators</p></div></div>
+      <div id="settlements" class="grid gap-3"></div>
+      <div class="bg-gold-light border border-amber-200 rounded-lg p-3 text-xs text-amber-900 hover:shadow-md transition"><b class="block text-amber-800 mb-0.5"><i class="fa-solid fa-landmark"></i> Abia Infrastructure Levy</b>A fixed ₦500 per interstate ticket is remitted to the Abia Internal Revenue Service (AIRS) account in real time.</div>
+    </div>
+  </div>
+</section>
+
+<!-- BOOKING -->
+<section id="view-booking" class="view hidden animate-rise">
+  <div class="grid gap-5 lg:grid-cols-12">
+    <div class="lg:col-span-5 grid gap-5 content-start">
+      <div class="card">
+        <div class="card-h"><div><h3><i class="fa-solid fa-magnifying-glass"></i> Find a bus</h3><p class="text-xs text-slate-500 mt-0.5">Book from home and skip the terminal queue</p></div></div>
+        <div class="grid gap-3.5">
+          <div><label class="lbl">Departure station</label><input class="input !bg-slate-50 !text-slate-500" value="Nnenna Otti Terminal, Umuahia" readonly></div>
+          <div><label class="lbl" for="searchDestination">Destination</label>
+            <select id="searchDestination" class="input" onchange="filterBuses()">
+              <option value="Lagos">Lagos (Ojota / Mazamaza Terminal)</option><option value="Abuja">Abuja (Utako Transport Hub)</option>
+              <option value="Port Harcourt">Port Harcourt (Mile 3 Terminal)</option><option value="Aba">Aba (Milverton Motor Park Hub)</option><option value="Kano">Kano (Sabon Gari Line)</option>
+            </select></div>
+          <div class="grid grid-cols-2 gap-3">
+            <div><label class="lbl" for="searchDate">Travel date</label><input type="date" id="searchDate" class="input"></div>
+            <div><label class="lbl" for="searchOperator">Operator</label>
+              <select id="searchOperator" class="input" onchange="filterBuses()"><option value="ALL">All operators</option><option value="Abia Line">Abia Line Executive</option><option value="ABC Transport">ABC Transport</option><option value="Peace Mass">Peace Mass Transit</option><option value="GUO">GUO Transport</option></select></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-h !mb-3"><h3>Available trips</h3><span class="text-xs text-slate-500" id="busesFoundCount"></span></div>
+        <div id="busTripList" class="grid gap-3 max-h-[420px] overflow-y-auto p-1 -m-1"></div>
+      </div>
+    </div>
+
+    <div class="lg:col-span-7 card grid gap-4 content-start">
+      <div class="card-h !mb-0 flex-wrap">
+        <div><h3 id="selectedBusTitle"><i class="fa-solid fa-couch"></i> Select your seats</h3><p class="text-xs text-slate-500 mt-0.5" id="selectedBusSub"></p></div>
+        <div class="flex gap-3.5 text-xs text-slate-500">
+          <span class="flex items-center gap-1.5"><i class="w-3 h-3 rounded border border-slate-300 bg-white"></i>Available</span>
+          <span class="flex items-center gap-1.5"><i class="w-3 h-3 rounded bg-abia"></i>Selected</span>
+          <span class="flex items-center gap-1.5"><i class="w-3 h-3 rounded bg-slate-200"></i>Taken</span></div>
+      </div>
+      <div class="bg-slate-100 border border-line rounded-xl p-5 flex flex-col items-center">
+        <div class="w-full max-w-[340px] flex justify-between text-xs font-semibold text-slate-500 border-b-2 border-slate-300 pb-2.5 mb-4"><span><i class="fa-solid fa-dharmachakra"></i> Driver</span><span>Front of bus</span></div>
+        <div id="seatGrid" class="w-full max-w-[340px] grid grid-cols-4 gap-2.5 bg-white p-4 rounded-xl border border-line"></div>
+        <p class="text-xs text-slate-500 mt-3">Select an available seat. Select it again to remove it.</p>
+      </div>
+      <div class="bg-slate-50 border border-line rounded-xl p-4 grid gap-2 text-[13px]">
+        <div class="flex justify-between"><span class="text-slate-500">Seats</span><b id="summarySelectedSeats">None</b></div>
+        <div class="flex justify-between"><span class="text-slate-500">Fare</span><b class="tabular-nums" id="summarySubtotal">₦0</b></div>
+        <div class="flex justify-between"><span class="text-slate-500">Abia Infrastructure Levy</span><b class="tabular-nums" id="summaryLevy">₦0</b></div>
+        <div class="flex justify-between items-center border-t border-line pt-3 mt-1">
+          <div><span class="text-xs text-slate-500">Total via ABSSIN wallet</span><div class="text-2xl font-extrabold text-abia-dark tabular-nums" id="summaryTotal">₦0</div></div>
+          <button class="btn btn-p" id="payBookingBtn" onclick="processABSSINBooking()" disabled><i class="fa-solid fa-wallet"></i> Pay with wallet</button></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SCANNER -->
+<section id="view-scanner" class="view hidden animate-rise">
+  <div class="grid gap-5 lg:grid-cols-12">
+    <div class="lg:col-span-5 card grid gap-4 content-start">
+      <div class="card-h !mb-0"><div><h3><i class="fa-solid fa-camera"></i> Gate verification</h3><p class="text-xs text-slate-500 mt-0.5">Point the scanner at the passenger's QR code</p></div><span class="badge b-green">Gate 2 online</span></div>
+      <div class="relative bg-[#0b1a24] rounded-xl h-64 grid place-items-center overflow-hidden">
+        <div class="relative w-44 h-44 border-2 border-dashed border-emerald-400/70 rounded-xl grid place-items-center text-6xl text-white/10 transition hover:border-emerald-300">
+          <div class="absolute inset-x-0 top-0 h-0.5 bg-emerald-300 shadow-[0_0_12px_#6ee7b7] animate-scan motion-reduce:animate-none"></div><i class="fa-solid fa-qrcode"></i></div>
+        <div class="absolute inset-x-2.5 bottom-2.5 bg-white/95 rounded-lg px-3 py-2 flex justify-between items-center text-xs text-slate-500"><span>Ready to scan</span><button class="btn btn-p btn-sm" onclick="triggerSimulatedScan()"><i class="fa-solid fa-bolt"></i> Simulate scan</button></div>
+      </div>
+      <div><label class="lbl" for="manualTicketInput">Or enter the ticket number</label>
+        <div class="flex gap-2"><input class="input uppercase" id="manualTicketInput" placeholder="e.g. ABT-8942-LGS"><button class="btn btn-o" onclick="validateTicketCode(document.getElementById('manualTicketInput').value)">Validate</button></div></div>
+    </div>
+    <div class="lg:col-span-7 grid gap-5 content-start">
+      <div class="card" id="scanResultBox"><div class="grid justify-items-center gap-3 py-6 text-center"><div class="w-14 h-14 rounded-full bg-slate-100 text-slate-400 grid place-items-center text-2xl"><i class="fa-solid fa-qrcode"></i></div><div><h3 class="text-lg font-bold text-navy">Scanner idle</h3><p class="text-xs text-slate-500">Scan a ticket or select "Simulate scan" to test validation.</p></div></div></div>
+      <div class="card">
+        <div class="card-h"><h3><i class="fa-solid fa-clipboard-check"></i> Gate check-in log</h3><span class="text-xs text-slate-500" id="manifestCount"></span></div>
+        <div class="overflow-x-auto"><table class="w-full text-[13px]"><thead><tr><th>Time</th><th>Passenger</th><th>ABSSIN</th><th>Seat</th><th>Bus &amp; route</th><th class="text-right">Status</th></tr></thead><tbody id="manifestTableBody"></tbody></table></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CARGO -->
+<section id="view-waybill" class="view hidden grid gap-5 animate-rise">
+  <div class="relative overflow-hidden rounded-xl bg-gradient-to-br from-navy via-navy to-navy-700 text-white p-7 border-l-8 border-gold flex flex-wrap items-center justify-between gap-5 shadow-lg">
+    <div><small class="text-amber-300 font-semibold text-xs">Abia commerce and trade integration</small><h2 class="text-2xl font-extrabold mt-1 mb-1.5">Ariaria Express waybill and cargo hub</h2>
+      <p class="text-slate-300 max-w-2xl">Send leather goods, garments and manufactured products from Aba and Umuahia to interstate destinations, with live SMS tracking.</p></div>
+    <button class="btn btn-g" onclick="toast('Demo: waybill slot reserved at Nnenna Otti Cargo Bay 4.')"><i class="fa-solid fa-box-archive"></i> Book freight slot</button>
+  </div>
+  <div class="grid gap-5 md:grid-cols-3">
+    <div class="card grid gap-3.5 content-start"><h3 class="font-bold text-navy text-[15px]">Track a parcel</h3>
+      <div><label class="lbl">Waybill number</label><input class="input tabular-nums" value="WAY-ABA-2026-904"></div>
+      <button class="btn btn-o" onclick="toast('WAY-ABA-2026-904 is in transit on Abia Line coach #AL-409 to Lagos Ojota.')">Check cargo location</button></div>
+    <div class="card md:col-span-2 grid gap-3"><h3 class="font-bold text-navy text-[15px]">Active interstate parcels</h3>
+      <div class="flex justify-between items-center gap-3 border border-line rounded-lg p-3 transition hover:border-abia hover:shadow-md hover:-translate-y-0.5"><div class="flex gap-3 items-center"><div class="w-10 h-10 rounded-lg bg-gold-light text-gold grid place-items-center"><i class="fa-solid fa-shirt"></i></div><div><b>Aba finished leather goods (12 cartons)</b><div class="text-[11px] text-slate-500">Consignee: Balogun Market, Lagos &middot; WAY-ABA-2026-904</div></div></div><span class="badge b-blue">In transit</span></div>
+      <div class="flex justify-between items-center gap-3 border border-line rounded-lg p-3 transition hover:border-abia hover:shadow-md hover:-translate-y-0.5"><div class="flex gap-3 items-center"><div class="w-10 h-10 rounded-lg bg-abia-light text-abia grid place-items-center"><i class="fa-solid fa-solar-panel"></i></div><div><b>Agricultural solar spares (2 crates)</b><div class="text-[11px] text-slate-500">Consignee: Utako Market, Abuja &middot; WAY-UMU-2026-112</div></div></div><span class="badge b-green">Delivered at terminal</span></div>
+    </div>
+  </div>
+</section>
+
+</main>
+<footer class="bg-white border-t border-line py-3.5 text-xs text-slate-500"><div class="max-w-7xl mx-auto px-4 lg:px-6">Abia State Government &middot; Nnenna Otti Terminal modernization prototype. All figures are demonstration data.</div></footer>
+
+<!-- Ticket modal -->
+<div id="ticketModal" class="modal hidden"><div class="mbox">
+  <button class="xbtn" onclick="closeTicketModal()" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+  <div class="text-center"><span class="badge b-green"><i class="fa-solid fa-circle-check"></i> Boarding ticket confirmed</span><h3 class="text-lg font-extrabold text-navy mt-2">Nnenna Otti Terminal pass</h3><p class="text-xs text-slate-500">Show this QR code at the terminal gate.</p></div>
+  <div class="border border-line rounded-xl overflow-hidden text-[13px] divide-y divide-line">
+    <div class="flex justify-between gap-3 px-3.5 py-2.5"><span class="text-slate-500">Ticket ID</span><b id="ticketIdDisplay" class="text-abia-dark"></b></div>
+    <div class="flex justify-between gap-3 px-3.5 py-2.5"><span class="text-slate-500">Passenger</span><b id="ticketName"></b></div>
+    <div class="flex justify-between gap-3 px-3.5 py-2.5"><span class="text-slate-500">ABSSIN</span><b>AB-UMU-2026-8942</b></div>
+    <div class="flex justify-between gap-3 px-3.5 py-2.5"><span class="text-slate-500">Route</span><b id="ticketRouteDisplay" class="text-right"></b></div>
+    <div class="flex justify-between gap-3 px-3.5 py-2.5"><span class="text-slate-500">Seat(s)</span><b id="ticketSeatDisplay" class="text-abia-dark"></b></div>
+  </div>
+  <div class="grid justify-items-center gap-1.5 p-3.5 border border-dashed border-slate-300 rounded-xl"><div id="qrcode"></div><span class="text-[11px] text-slate-500">Scan at gate for automated entry</span></div>
+  <div class="grid grid-cols-2 gap-3"><button class="btn btn-o" onclick="simulateSendSMS()"><i class="fa-solid fa-mobile-screen"></i> Send SMS pass</button><button class="btn btn-p" onclick="testGateScanFromModal()"><i class="fa-solid fa-qrcode"></i> Test gate scan</button></div>
+</div></div>
+
+<!-- Wallet modal -->
+<div id="walletModal" class="modal hidden"><div class="mbox">
+  <button class="xbtn" onclick="closeWalletModal()" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+  <div><h3 class="text-lg font-extrabold text-navy">Fund ABSSIN wallet</h3><p class="text-xs text-slate-500">ABSSIN ID: AB-UMU-2026-8942</p></div>
+  <div><label class="lbl">Quick amounts</label><div class="grid grid-cols-3 gap-2"><button class="btn btn-o" onclick="setTopupAmount(5000)">₦5,000</button><button class="btn btn-o" onclick="setTopupAmount(10000)">₦10,000</button><button class="btn btn-o" onclick="setTopupAmount(25000)">₦25,000</button></div></div>
+  <div><label class="lbl" for="topupAmountInput">Amount (₦)</label><input type="number" id="topupAmountInput" class="input tabular-nums" value="10000"></div>
+  <div><label class="lbl">Payment method</label><select class="input"><option>Instant bank transfer (Paystack / Monnify)</option><option>USSD quick funding (*789*8942#)</option><option>Terminal POS kiosk agent</option></select></div>
+  <button class="btn btn-p" onclick="confirmTopup()">Simulate funding</button>
+</div></div>
+
+<!-- Pitch guide -->
+<div id="pitchGuideModal" class="modal hidden"><div class="mbox !max-w-lg">
+  <button class="xbtn" onclick="togglePitchGuideModal()" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+  <div><h3 class="text-lg font-extrabold text-navy">Talking points for the Ministry of Transport</h3><p class="text-xs text-slate-500">Core value for Abia State Government</p></div>
+  <div class="grid gap-3 text-xs">
+    <div class="border border-line rounded-lg p-3 transition hover:border-abia hover:bg-abia-light/50"><b class="block text-abia-dark text-[13px] mb-0.5">Less waiting and crowding</b>Passengers book specific seats from home. Tickets spread arrivals across 30-minute departure windows and remove long queues.</div>
+    <div class="border border-line rounded-lg p-3 transition hover:border-abia hover:bg-abia-light/50"><b class="block text-abia-dark text-[13px] mb-0.5">Financial inclusion through ABSSIN</b>The Abia State Service Identification Number works as one transit wallet across Abia Line, ABC, Peace Mass and GUO.</div>
+    <div class="border border-line rounded-lg p-3 transition hover:border-abia hover:bg-abia-light/50"><b class="block text-abia-dark text-[13px] mb-0.5">Automatic levy collection</b>State transport levies (for example ₦500 per seat) are deducted before operators are paid, closing revenue leakage.</div>
+  </div>
+  <button class="btn btn-o" onclick="togglePitchGuideModal()">Close</button>
+</div></div>
+
+<script>
+let walletBalance = 25000, selectedSeats = [], currentSelectedBus = null, generatedTicket = null;
+const USER = { name: 'Mr Mark Zu', abssin: 'AB-UMU-2026-8942' };
+const pad = n => n < 10 ? '0' + n : '' + n;
+const naira = n => '₦' + n.toLocaleString();
+
+const busTrips = [
+  { id:'BUS-001', operator:'Abia Line Executive', type:'Toyota Hiace (14-seater, air-conditioned)', destination:'Lagos', departureTime:'07:30 AM', bay:'Bay 03', price:12000, levy:500, bookedSeats:[1,2,7,8,12], totalSeats:14 },
+  { id:'BUS-002', operator:'ABC Transport Ltd', type:'Executive luxury coach', destination:'Abuja', departureTime:'08:00 AM', bay:'Bay 01', price:15000, levy:500, bookedSeats:[3,4,5,9,10,11,13], totalSeats:14 },
+  { id:'BUS-003', operator:'Peace Mass Transit', type:'Toyota Hiace (standard)', destination:'Port Harcourt', departureTime:'09:15 AM', bay:'Bay 05', price:4500, levy:500, bookedSeats:[2,6], totalSeats:14 },
+  { id:'BUS-004', operator:'Abia Line Executive', type:'Toyota Hiace express', destination:'Aba', departureTime:'10:00 AM', bay:'Bay 02', price:2500, levy:300, bookedSeats:[1,3,4], totalSeats:14 },
+  { id:'BUS-005', operator:'GUO Transport', type:'Toyota Hiace (standard)', destination:'Kano', departureTime:'11:00 AM', bay:'Bay 04', price:22000, levy:500, bookedSeats:[1,5,6,9], totalSeats:14 }
+];
+const gateManifestLog = [
+  { time:'07:12 AM', name:'Dr. Chidozie K.', abssin:'AB-UMU-2026-1102', seat:'Seat 01', trip:'Abia Line (Lagos)' },
+  { time:'07:18 AM', name:'Mrs. Nkechi E.', abssin:'AB-ABA-2026-4491', seat:'Seat 02', trip:'Abia Line (Lagos)' },
+  { time:'07:24 AM', name:'Engr. Emeka Nwosu', abssin:'AB-UMU-2026-9011', seat:'Seat 03', trip:'ABC Transport (Abuja)' },
+  { time:'07:31 AM', name:'Amaka Johnson', abssin:'AB-OHAF-2026-3190', seat:'Seat 08', trip:'Peace Mass (PH)' }
+];
+const departures = [
+  ['Abia Line Executive','AL-409','Lagos (Ojota)','07:30 AM','Bay 03','11/14','Boarding','b-green'],
+  ['ABC Transport','ABC-102','Abuja (Utako)','08:00 AM','Bay 01','14/14','Full, ready','b-gold'],
+  ['Peace Mass Transit','PMT-88','Port Harcourt','09:15 AM','Bay 05','08/14','Loading','b-blue'],
+  ['GUO Transport','GUO-55','Kano (Sabon Gari)','11:00 AM','Bay 04','04/14','Scheduled','b-grey']
+];
+// [accent border, icon bg/text, icon, label, value, note]
+const metrics = [
+  ['border-t-abia','bg-abia-light text-abia','fa-bus','Trips active or scheduled','48','100% on-time tracking'],
+  ['border-t-blue-600','bg-blue-50 text-blue-600','fa-users','Passengers processed today','1,482','No queue delays recorded'],
+  ['border-t-gold','bg-gold-light text-gold','fa-wallet','Revenue cleared via ABSSIN','₦18,450,000','Operator split automated'],
+  ['border-t-navy-700','bg-slate-100 text-navy-700','fa-stopwatch','Average terminal wait','11 min','Down from 1 h 45 min']
+];
+const settlements = [
+  ['Abia Line Executive','₦8,420,000',70,'312 bookings today','Levy ₦156,000','bg-abia'],
+  ['ABC Transport Ltd','₦5,180,000',50,'140 coach seats','Levy ₦70,000','bg-blue-600'],
+  ['Peace Mass Transit','₦4,850,000',45,'198 regional seats','Levy ₦99,000','bg-gold']
+];
+
+window.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('metrics').innerHTML = metrics.map(m => `
+    <div class="card !p-5 border-t-4 ${m[0]} flex justify-between gap-3 hover:-translate-y-1 hover:shadow-xl transition-all duration-300 group">
+      <div><div class="text-xs font-semibold text-slate-500">${m[3]}</div><div class="text-2xl font-extrabold text-navy tabular-nums my-1">${m[4]}</div><div class="text-xs font-semibold text-abia-dark">${m[5]}</div></div>
+      <div class="w-10 h-10 shrink-0 rounded-lg grid place-items-center text-lg transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6 ${m[1]}"><i class="fa-solid ${m[2]}"></i></div></div>`).join('');
+  document.getElementById('settlements').innerHTML = settlements.map(s => `
+    <div class="border border-line rounded-lg p-3 grid gap-2 transition-all duration-200 hover:border-abia hover:shadow-md hover:-translate-y-0.5">
+      <div class="flex justify-between font-bold text-[13px]"><span>${s[0]}</span><span class="tabular-nums text-abia-dark">${s[1]}</span></div>
+      <div class="h-1.5 bg-slate-200 rounded-full overflow-hidden"><i class="block h-full ${s[5]} transition-all" style="width:${s[2]}%"></i></div>
+      <div class="flex justify-between text-[11px] text-slate-500"><span>${s[3]}</span><span>${s[4]}</span></div></div>`).join('');
+  document.getElementById('dashboardDepartureTable').innerHTML = departures.map(d => `
+    <tr><td><b>${d[0]}</b><div class="text-[11px] text-slate-500">${d[1]}</div></td><td>${d[2]}</td><td class="tabular-nums">${d[3]}</td><td>${d[4]}</td><td class="tabular-nums">${d[5]}</td>
+    <td class="text-right"><span class="badge ${d[7]}">${d[6]}</span></td></tr>`).join('');
+  document.getElementById('searchDate').value = new Date().toISOString().split('T')[0];
+  filterBuses(); renderManifestTable();
+});
+
+function switchView(v) {
+  document.querySelectorAll('.view').forEach(p => p.classList.add('hidden'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('view-' + v).classList.remove('hidden');
+  document.getElementById('tab-' + v).classList.add('active');
+}
+
+function filterBuses() {
+  const dest = document.getElementById('searchDestination').value, op = document.getElementById('searchOperator').value;
+  const list = busTrips.filter(b => b.destination === dest && (op === 'ALL' || b.operator.includes(op)));
+  document.getElementById('busesFoundCount').innerText = `${list.length} ${list.length === 1 ? 'bus' : 'buses'} found`;
+  const box = document.getElementById('busTripList');
+  if (!list.length) {
+    box.innerHTML = '<div class="text-xs text-slate-500 text-center p-5">No buses match these filters. Try another operator or destination.</div>';
+    currentSelectedBus = null; selectedSeats = []; renderSeatGrid(); updateBookingSummary(); return;
+  }
+  box.innerHTML = list.map(b => `
+    <div class="bus border border-line rounded-lg p-3.5 grid gap-2.5 cursor-pointer bg-white transition-all duration-200 hover:border-abia hover:shadow-md hover:-translate-y-0.5" onclick="selectBusTrip('${b.id}')" id="bus-card-${b.id}">
+      <div class="flex justify-between gap-2"><div><b>${b.operator}</b><div class="text-xs text-slate-500">${b.type}</div></div><span class="badge b-green tabular-nums h-fit">${naira(b.price)} / seat</span></div>
+      <div class="flex justify-between text-xs text-slate-500 border-t border-line pt-2.5"><span><i class="fa-solid fa-clock text-abia mr-1"></i>${b.departureTime}</span><span><i class="fa-solid fa-door-open text-abia mr-1"></i>${b.bay}</span><b class="text-abia-dark">${b.totalSeats - b.bookedSeats.length} seats left</b></div></div>`).join('');
+  selectBusTrip(list[0].id);
+}
+
+function selectBusTrip(id) {
+  currentSelectedBus = busTrips.find(b => b.id === id); selectedSeats = [];
+  document.querySelectorAll('.bus').forEach(c => c.classList.remove('!border-abia', '!bg-abia-light', 'ring-2', 'ring-abia/30'));
+  const el = document.getElementById('bus-card-' + id); if (el) el.classList.add('!border-abia', '!bg-abia-light', 'ring-2', 'ring-abia/30');
+  document.getElementById('selectedBusTitle').innerHTML = `<i class="fa-solid fa-couch"></i> Select seats to ${currentSelectedBus.destination}`;
+  document.getElementById('selectedBusSub').innerText = `${currentSelectedBus.type} · ${currentSelectedBus.operator} · ${currentSelectedBus.departureTime}`;
+  renderSeatGrid(); updateBookingSummary();
+}
+
+function renderSeatGrid() {
+  const g = document.getElementById('seatGrid'); g.innerHTML = '';
+  if (!currentSelectedBus) { g.innerHTML = '<p class="col-span-4 text-xs text-slate-500 text-center">Choose a trip to see its seats.</p>'; return; }
+  for (let i = 1; i <= currentSelectedBus.totalSeats; i++) {
+    const taken = currentSelectedBus.bookedSeats.includes(i), sel = selectedSeats.includes(i);
+    const b = document.createElement('button');
+    b.className = 'seat' + (sel ? ' sel' : ''); b.disabled = taken;
+    b.setAttribute('aria-label', `Seat ${i}, ${taken ? 'taken' : sel ? 'selected' : 'available'}`);
+    b.innerHTML = `${pad(i)}<span>${taken ? 'TAKEN' : sel ? 'SELECTED' : 'OPEN'}</span>`;
+    if (!taken) b.onclick = () => toggleSeat(i);
+    g.appendChild(b);
+  }
+}
+function toggleSeat(n) { const i = selectedSeats.indexOf(n); i > -1 ? selectedSeats.splice(i, 1) : selectedSeats.push(n); renderSeatGrid(); updateBookingSummary(); }
+
+function updateBookingSummary() {
+  const btn = document.getElementById('payBookingBtn');
+  if (!currentSelectedBus || !selectedSeats.length) {
+    document.getElementById('summarySelectedSeats').innerText = 'None';
+    ['summarySubtotal', 'summaryLevy', 'summaryTotal'].forEach(id => document.getElementById(id).innerText = '₦0');
+    btn.disabled = true; return;
+  }
+  const sub = selectedSeats.length * currentSelectedBus.price, levy = selectedSeats.length * currentSelectedBus.levy;
+  document.getElementById('summarySelectedSeats').innerText = selectedSeats.slice().sort((a, b) => a - b).map(pad).join(', ');
+  document.getElementById('summarySubtotal').innerText = naira(sub);
+  document.getElementById('summaryLevy').innerText = naira(levy);
+  document.getElementById('summaryTotal').innerText = naira(sub + levy);
+  btn.disabled = false;
+}
+
+function processABSSINBooking() {
+  if (!currentSelectedBus || !selectedSeats.length) return;
+  const total = selectedSeats.length * (currentSelectedBus.price + currentSelectedBus.levy);
+  if (walletBalance < total) { toast(`Insufficient balance: you need ${naira(total)} but have ${naira(walletBalance)}. Top up to continue.`); openWalletModal(); return; }
+  walletBalance -= total; updateWalletDisplays();
+  currentSelectedBus.bookedSeats.push(...selectedSeats);
+  generatedTicket = {
+    ticketId: `ABT-${Math.floor(1000 + Math.random() * 9000)}-${currentSelectedBus.destination.substring(0, 3).toUpperCase()}`,
+    passengerName: USER.name, abssin: USER.abssin, route: `Umuahia to ${currentSelectedBus.destination}`, operator: currentSelectedBus.operator,
+    seats: selectedSeats.slice().sort((a, b) => a - b).map(pad).join(', '), bay: currentSelectedBus.bay, departureTime: currentSelectedBus.departureTime
+  };
+  confetti({ particleCount: 90, spread: 65, origin: { y: .6 }, colors: ['#0a7a4d', '#b7852a', '#0c2b3f'] });
+  showTicketModal();
+  const id = currentSelectedBus.id; filterBuses(); selectBusTrip(id);
+}
+
+function showTicketModal() {
+  const t = generatedTicket;
+  document.getElementById('ticketIdDisplay').innerText = t.ticketId;
+  document.getElementById('ticketName').innerText = t.passengerName;
+  document.getElementById('ticketRouteDisplay').innerHTML = `${t.route}<br><span class="text-xs text-slate-500 font-medium">${t.operator}, ${t.bay}, ${t.departureTime}</span>`;
+  document.getElementById('ticketSeatDisplay').innerText = `Seat ${t.seats}`;
+  const q = document.getElementById('qrcode'); q.innerHTML = '';
+  new QRCode(q, { text: JSON.stringify({ id: t.ticketId, abssin: t.abssin, seats: t.seats, operator: t.operator }), width: 140, height: 140, colorDark: '#0c2b3f', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.H });
+  document.getElementById('ticketModal').classList.remove('hidden');
+}
+function closeTicketModal() { document.getElementById('ticketModal').classList.add('hidden'); }
+function simulateSendSMS() { toast(`SMS pass sent to +234 803 *** 8942. Ticket ${generatedTicket.ticketId}, seat ${generatedTicket.seats}, departs ${generatedTicket.departureTime}.`); }
+function testGateScanFromModal() { closeTicketModal(); switchView('scanner'); validateTicketCode(generatedTicket.ticketId); }
+function triggerSimulatedScan() { validateTicketCode(generatedTicket ? generatedTicket.ticketId : 'ABT-8942-LGS'); }
+
+function validateTicketCode(code) {
+  const c = (code || '').trim().toUpperCase(), box = document.getElementById('scanResultBox');
+  if (!c) { box.innerHTML = `<div class="bg-red-50 border border-red-200 text-red-700 rounded-xl p-5 animate-pop"><b><i class="fa-solid fa-triangle-exclamation"></i> Ticket not recognised</b><p class="text-xs mt-1">Scan a valid Nnenna Otti Terminal QR code or enter a ticket number.</p></div>`; return; }
+  const m = generatedTicket && generatedTicket.ticketId === c;
+  const name = m ? generatedTicket.passengerName : USER.name, ab = m ? generatedTicket.abssin : USER.abssin;
+  const seat = m ? `Seat ${generatedTicket.seats}` : 'Seat 04, 05';
+  const trip = m ? `${generatedTicket.operator} (${generatedTicket.route})` : 'Abia Line Executive (Lagos Ojota)';
+  box.innerHTML = `<div class="bg-abia-light border border-emerald-300 rounded-xl p-5 grid gap-4 animate-pop">
+    <div class="flex flex-wrap justify-between items-center gap-2"><span class="badge b-green !text-xs"><i class="fa-solid fa-circle-check"></i> Passenger verified and authorised</span><span class="text-xs text-slate-500 tabular-nums">${new Date().toLocaleTimeString()}</span></div>
+    <div class="grid grid-cols-2 gap-3.5">
+      <div><span class="block text-[11px] font-semibold text-slate-500">Passenger</span><strong class="text-navy">${name}</strong></div>
+      <div><span class="block text-[11px] font-semibold text-slate-500">ABSSIN ID</span><strong class="text-navy tabular-nums">${ab}</strong></div>
+      <div><span class="block text-[11px] font-semibold text-slate-500">Seat(s)</span><strong class="text-abia-dark text-lg">${seat}</strong></div>
+      <div><span class="block text-[11px] font-semibold text-slate-500">Gate and bay</span><strong class="text-navy">Gate 02, Bay 03</strong></div></div>
+    <div class="flex justify-between text-xs border-t border-emerald-200 pt-2.5"><span>Wallet status: <b>Paid and cleared</b></span><span class="text-slate-500 tabular-nums">${c}</span></div></div>`;
+  gateManifestLog.unshift({ time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), name, abssin: ab, seat, trip });
+  renderManifestTable();
+}
+
+function renderManifestTable() {
+  document.getElementById('manifestCount').innerText = `Verified today: ${gateManifestLog.length}`;
+  document.getElementById('manifestTableBody').innerHTML = gateManifestLog.map(l => `
+    <tr><td class="tabular-nums text-slate-500">${l.time}</td><td><b>${l.name}</b></td><td class="tabular-nums">${l.abssin}</td><td>${l.seat}</td><td>${l.trip}</td><td class="text-right"><span class="badge b-green">Validated</span></td></tr>`).join('');
+}
+
+function openWalletModal() { document.getElementById('walletModal').classList.remove('hidden'); }
+function closeWalletModal() { document.getElementById('walletModal').classList.add('hidden'); }
+function setTopupAmount(a) { document.getElementById('topupAmountInput').value = a; }
+function confirmTopup() {
+  const a = parseFloat(document.getElementById('topupAmountInput').value);
+  if (isNaN(a) || a <= 0) { toast('Enter a funding amount greater than zero.'); return; }
+  walletBalance += a; updateWalletDisplays(); closeWalletModal();
+  toast(`${naira(a)} added to your wallet. New balance: ${naira(walletBalance)}.`);
+}
+function updateWalletDisplays() { document.getElementById('navWalletBalance').innerText = naira(walletBalance); }
+function togglePitchGuideModal() { document.getElementById('pitchGuideModal').classList.toggle('hidden'); }
+
+let toastTimer;
+function toast(msg) {
+  document.querySelectorAll('.toast').forEach(t => t.remove());
+  const t = document.createElement('div');
+  t.className = 'toast fixed bottom-5 left-1/2 -translate-x-1/2 z-[60] bg-navy text-white px-5 py-3 rounded-lg text-[13px] shadow-2xl max-w-[92vw] animate-pop border-l-4 border-gold';
+  t.setAttribute('role', 'status'); t.textContent = msg; document.body.appendChild(t);
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.remove(), 4500);
+}
+</script>
+</body>
+</html>
